@@ -5,16 +5,27 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900/20 to-gray-900">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
-        <nav className="flex justify-between items-center mb-20">
-          <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <nav className="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0 mb-20">
+          <div className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             LyricsLive
           </div>
-          <Link
-            href="/analyze"
-            className="px-6 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 text-white rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-          >
-            Launch App
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/analyze"
+              className="px-6 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            >
+              Analyzer
+            </Link>
+            <Link
+              href="/practice"
+              className="flex items-center gap-2 px-6 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            >
+              <span>Practice</span>
+              <span className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded">
+                BETA
+              </span>
+            </Link>
+          </div>
         </nav>
 
         <div className="max-w-4xl mx-auto text-center mt-20">
@@ -28,12 +39,23 @@ export default function Home() {
             AI-powered performance coach for rappers and singers. Get instant feedback on flow, rhythm, breath control, and more.
           </p>
 
-          <Link
-            href="/analyze"
-            className="inline-block px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
-          >
-            Start Analyzing
-          </Link>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              href="/analyze"
+              className="inline-block px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold rounded-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            >
+              Start Analyzing
+            </Link>
+            <Link
+              href="/practice"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white font-semibold rounded-lg transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            >
+              <span>Try Practice Mode</span>
+              <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded">
+                BETA
+              </span>
+            </Link>
+          </div>
         </div>
 
         {/* Features Grid */}
@@ -64,9 +86,10 @@ export default function Home() {
             icon="📝"
           />
           <FeatureCard
-            title="Bar-by-Bar Feedback"
-            description="See exactly which bars need work and get specific suggestions for each."
-            icon="📊"
+            title="Live Practice"
+            description="Practice with live microphone and get real-time feedback on your performance."
+            icon="🎤"
+            badge="BETA"
           />
         </div>
 
@@ -117,10 +140,17 @@ export default function Home() {
   );
 }
 
-function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
+function FeatureCard({ title, description, icon, badge }: { title: string; description: string; icon: string; badge?: string }) {
   return (
     <div className="p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl hover:bg-white/10 hover:border-purple-500/30 transition-all">
-      <div className="text-4xl mb-4">{icon}</div>
+      <div className="flex items-start justify-between mb-4">
+        <div className="text-4xl">{icon}</div>
+        {badge && (
+          <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded">
+            {badge}
+          </span>
+        )}
+      </div>
       <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
       <p className="text-gray-400 text-sm">{description}</p>
     </div>
