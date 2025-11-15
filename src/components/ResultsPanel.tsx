@@ -4,10 +4,12 @@ import type { AnalysisResult } from '@/lib/analyzer';
 
 interface ResultsPanelProps {
   result: AnalysisResult;
+  lyrics?: string;
+  audioFileName?: string;
   onReset: () => void;
 }
 
-export default function ResultsPanel({ result, onReset }: ResultsPanelProps) {
+export default function ResultsPanel({ result, lyrics, audioFileName, onReset }: ResultsPanelProps) {
   const { metrics, barAnalysis, keyInsights, coachingNotes, energyTimeline } = result;
 
   // Helper to get color based on score

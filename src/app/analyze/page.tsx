@@ -1,20 +1,36 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AnalyzerForm from '@/components/AnalyzerForm';
 import ResultsPanel from '@/components/ResultsPanel';
 import type { AnalysisResult } from '@/lib/analyzer';
+import { saveSession, getSessions, getSessionCount } from '@/lib/sessionStorage';
 
 export default function AnalyzePage() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [currentLyrics, setCurrentLyrics] = useState('');
+  const [currentAudioName, setCurrentAudioName] = useState('');
+  const [sessionCount, setSessionCount] = useState(0);
 
-  const handleAnalysisComplete = (result: AnalysisResult) => {
+  useEffect(() => {
+    setSessionCount(getSessionCount());
+  }, []);
+
+  const handleAnalysisComplete = (result: AnalysisResult, lyrics: string, audioFileName?: string) => {
     setAnalysisResult(result);
+    setCurrentLyrics(lyrics);
+    setCurrentAudioName(audioFileName || 'Unknown');
+
+    // Auto-save session to localStorage
+    saveSession(result, lyrics, audioFileName);
+    setSessionCount(getSessionCount());
   };
 
   const handleReset = () => {
     setAnalysisResult(null);
+    setCurrentLyrics('');
+    setCurrentAudioName('');
   };
 
   return (
@@ -26,6 +42,26 @@ export default function AnalyzePage() {
             LyricsLive
           </Link>
           <div className="flex items-center gap-3">
+            {sessionCount > 0 && (
+              <Link
+                href="/history"
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>History</span>
+                <span className="px-1.5 py-0.5 bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded">
+                  {sessionCount}
+                </span>
+              </Link>
+            )}
+            <Link
+              href="/tips"
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            >
+              Tips
+            </Link>
             <Link
               href="/practice"
               className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
@@ -63,7 +99,12 @@ export default function AnalyzePage() {
             </div>
           ) : (
             <div className="animate-slide-up">
-              <ResultsPanel result={analysisResult} onReset={handleReset} />
+              <ResultsPanel
+                result={analysisResult}
+                lyrics={currentLyrics}
+                audioFileName={currentAudioName}
+                onReset={handleReset}
+              />
             </div>
           )}
         </div>

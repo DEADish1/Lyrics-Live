@@ -3,9 +3,10 @@
 import { useState, FormEvent } from 'react';
 import type { AnalysisResult } from '@/lib/analyzer';
 import { analyzePerformance } from '@/lib/apiClient';
+import { DEMO_CONFIGS } from '@/lib/sampleData';
 
 interface AnalyzerFormProps {
-  onAnalysisComplete: (result: AnalysisResult) => void;
+  onAnalysisComplete: (result: AnalysisResult, lyrics: string, audioFileName?: string) => void;
 }
 
 export default function AnalyzerForm({ onAnalysisComplete }: AnalyzerFormProps) {
@@ -13,6 +14,7 @@ export default function AnalyzerForm({ onAnalysisComplete }: AnalyzerFormProps) 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
+  const [showDemoOptions, setShowDemoOptions] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -32,12 +34,38 @@ export default function AnalyzerForm({ onAnalysisComplete }: AnalyzerFormProps) 
 
     try {
       const result = await analyzePerformance(lyrics, audioFile);
-      onAnalysisComplete(result);
+      onAnalysisComplete(result, lyrics, audioFile.name);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleDemoMode = async (demoId: string) => {
+    const demo = DEMO_CONFIGS.find(d => d.id === demoId);
+    if (!demo) return;
+
+    setLyrics(demo.lyrics);
+    setShowDemoOptions(false);
+    setError('');
+
+    // Create a fake audio file for demo
+    const fakeAudio = new File([''], `demo-${demo.id}.mp3`, { type: 'audio/mp3' });
+    setAudioFile(fakeAudio);
+
+    // Auto-analyze after short delay
+    setIsAnalyzing(true);
+    setTimeout(async () => {
+      try {
+        const result = await analyzePerformance(demo.lyrics, fakeAudio);
+        onAnalysisComplete(result, demo.lyrics, `Demo: ${demo.name}`);
+      } catch (err) {
+        setError('Demo analysis failed');
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }, 800);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,11 +84,47 @@ export default function AnalyzerForm({ onAnalysisComplete }: AnalyzerFormProps) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+      {/* Demo Mode Button */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-gray-300">Try a Demo</h3>
+        <button
+          type="button"
+          onClick={() => setShowDemoOptions(!showDemoOptions)}
+          className="px-4 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 hover:border-purple-500/50 text-purple-300 text-sm font-medium rounded-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+        >
+          {showDemoOptions ? 'Hide Demos' : 'Load Demo'}
+        </button>
+      </div>
+
+      {/* Demo Options */}
+      {showDemoOptions && (
+        <div className="grid sm:grid-cols-3 gap-3 animate-fade-in">
+          {DEMO_CONFIGS.map((demo) => (
+            <button
+              key={demo.id}
+              type="button"
+              onClick={() => handleDemoMode(demo.id)}
+              className="p-4 bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10 hover:border-purple-500/50 rounded-lg text-left transition-all duration-300 group"
+            >
+              <div className="text-sm font-semibold text-white mb-1 group-hover:text-purple-300 transition-colors">
+                {demo.name}
+              </div>
+              <div className="text-xs text-gray-400">{demo.description}</div>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Lyrics Input */}
       <div className="animate-fade-in">
-        <label htmlFor="lyrics" className="block text-sm font-medium text-gray-200 mb-2">
-          Paste Your Lyrics
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label htmlFor="lyrics" className="block text-sm font-medium text-gray-200">
+            Paste Your Lyrics
+          </label>
+          <span className="text-xs text-gray-500">
+            {lyrics.split('\n').filter(l => l.trim()).length} bars
+          </span>
+        </div>
         <textarea
           id="lyrics"
           value={lyrics}
@@ -95,7 +159,7 @@ export default function AnalyzerForm({ onAnalysisComplete }: AnalyzerFormProps) 
                     {audioFile.name}
                   </div>
                   <div className="text-gray-400 text-xs sm:text-sm">
-                    {(audioFile.size / 1024 / 1024).toFixed(2)} MB
+                    {audioFile.size > 0 ? `${(audioFile.size / 1024 / 1024).toFixed(2)} MB` : 'Demo file'}
                   </div>
                 </div>
               ) : (
@@ -138,6 +202,16 @@ export default function AnalyzerForm({ onAnalysisComplete }: AnalyzerFormProps) 
           'Analyze My Performance'
         )}
       </button>
+
+      {/* Keyboard Shortcut Hint */}
+      <div className="text-center text-xs text-gray-500">
+        <span className="inline-flex items-center gap-1">
+          <kbd className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-xs">Ctrl</kbd>
+          <span>+</span>
+          <kbd className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-xs">Enter</kbd>
+          <span>to analyze</span>
+        </span>
+      </div>
     </form>
   );
 }
